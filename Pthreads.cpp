@@ -76,8 +76,8 @@ void * produz(void* arg) //unsigned long V, std::list<long> B
 			sched_yield();
 		B->push_back(rand() % LONG_MAX);
     }
-	printf("kk\n");
     count++;
+    printf("kk\n");
 	pthread_exit(NULL);
 }
 
