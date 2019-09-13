@@ -34,15 +34,34 @@ int main(int argc, char* argv[])
 	p_arg->B = &buffer;
 	printf("******\n");
 	for (int i = 0; i < p; i++)
+	{
 		while (flag)
 			flag = pthread_create(&produtores[i], NULL, produz, (void*)p_arg);//*****
-	flag = 1;
+		flag = 1;
+	}
 	printf("******\n");
+
+	for (int i = 0; i < p; i++)
+	{
+		while (flag)
+			flag = pthread_join(produtores[i],NULL);
+		flag = 1;
+	}
+
 	for (int i = 0; i < c; i++)
+	{
 		while (flag)
 			flag = pthread_create(&consumidores[i], NULL, consome, (void*)p_arg);//*****
-
+		flag = 1;
+	}
 	printf("******\n");
+
+	for (int i = 0; i < p; i++)
+	{
+		while (flag)
+			flag = pthread_join(consumidores[i],NULL);
+		flag = 1;
+	}
 	return 0;
 }
 
