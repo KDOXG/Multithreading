@@ -7,7 +7,7 @@
 
 /*	https://pastebin.com/84JzD3vL	*/
 
-unsigned long t;
+unsigned long t, count = 0;
 int produz(unsigned long V, std::list<long> B);
 int consome(std::list<long> B);
 bool prime_number(unsigned long p);
@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < p; i++)
 		while (pthread_create(&produtores[i], NULL, produz, v, buffer));
 	for (int i = 0; i < c; i++)
-		while (pthread_create(&consumidores[i], NULL, consome, NULL));
+		while (pthread_create(&consumidores[i], NULL, consome, buffer));
 
 	return 0;
 }
@@ -35,30 +35,34 @@ int main(int argc, char* argv[])
 int produz(unsigned long V, std::list<long> B)
 {
 	for (unsigned long i = 0; i < V; i++)
+    {
 		while (B.size() == t)
 			sched_yield();
 		B.push_back(rand() % LONG_MAX);
-	return 0;
+    }
+    count++;
+	pthread_exit(NULL);
 }
 
 int consome(std::list<long> B)
 {
-	while(1)
+	while(count < t || B.size() != 0)
 	{
 		while (B.size() == 0)
 			sched_yield();
-		long a = B.pop_front();
-		if (a < 0)
+		long a = B.front();
+        B.pop_front();
+		if (a == -1)
 			break;
 		if (prime_number(a))
 		{
 			//std::cout << '[' << pthread_self() << ':' << a << "]\n";
 			std::cout << '[';
-			syscall(__NR_gettid);
+			system("__NR_gettid");
 			std::cout << ':' << a << "]\n";
 		}
 	}
-	return 0;
+	pthread_exit(NULL);
 }
 
 bool prime_number(long p)
