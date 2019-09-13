@@ -5,6 +5,8 @@
 #include <cstdbool>
 #include <pthread.h>
 
+/*	https://pastebin.com/84JzD3vL	*/
+
 unsigned long t;
 int produz(unsigned long V, std::list<long> B);
 int consome(std::list<long> B);
