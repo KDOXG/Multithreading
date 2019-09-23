@@ -78,7 +78,6 @@ void * produz(void* arg) //unsigned short V, std::list<short> B
 		B->push_back(rand() % SHRT_MAX);
 		pthread_mutex_unlock(&m);
     }
-	B->push_back(-1);
     count++;
 	pthread_exit(NULL);
 }
