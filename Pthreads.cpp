@@ -51,12 +51,10 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < p; i++)
 		flag = pthread_join(produtores[i],NULL);
 
+	pthread_mutex_lock(&m);
 	for (int i = 0; i < c; i++)
-	{
-		pthread_mutex_lock(&m);
 		buffer.push_back(-1);
-		pthread_mutex_unlock(&m);
-	}
+	pthread_mutex_unlock(&m);
 
 	for (int i = 0; i < c; i++)
 		flag = pthread_join(consumidores[i],NULL);
@@ -97,7 +95,7 @@ void * consome(void* arg) //std::list<short> B
 		if (a == -1)
 			break;
 		if (prime_number(abs(a)))
-			std::cout << "[" + std::to_string(pthread_self()) + ':' + std::to_string(a) + "]\n";
+			std::cout << '[' + std::to_string(pthread_self()) + ':' + std::to_string(a) + "]\n";
 	}
 	pthread_exit(NULL);
 }
