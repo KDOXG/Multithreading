@@ -7,6 +7,9 @@
 #include <pthread.h>
 
 /*	https://pastebin.com/84JzD3vL	*/
+
+/*	https://docs.google.com/document/d/1qXxZWiY8NSQ7G89HWHr3YfpRt4M-mdzbEVR_OgL1LOU/	*/
+
 /*	AVISO
 *	O tipo "short int" para a lista foi escolhido apenas para rodar em tempo mais aceitável.
 *	Em tipos maiores como long int ou long long int tornavam o algoritmo de teste de primalidade muito lento.
