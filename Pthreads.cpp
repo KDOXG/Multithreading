@@ -7,12 +7,16 @@
 #include <pthread.h>
 
 /*	https://pastebin.com/84JzD3vL	*/
+/*	AVISO
+*	O tipo "short int" para a lista foi escolhido apenas para rodar em tempo mais aceitável.
+*	Em tipos maiores como long int ou long long int tornavam o algoritmo de teste de primalidade muito lento.
+*/
 
 struct pth_arg{
-	unsigned int V;
+	unsigned long V;
 	std::list<short> *B;
 };
-unsigned long v, p, c, t, count = 0;
+unsigned long v, p, c, t;
 pthread_mutex_t m;
 void * produz(void *arg);
 void * consome(void *arg);
@@ -33,10 +37,10 @@ int main(int argc, char* argv[])
 	pthread_t produtores[p];
 	pthread_t consumidores[c];
 	p_arg->V = v;
-	p_arg->B = &buffer;
+	p_arg->B = &buffer;	//Passagem por referência para ambas as funções poderem modificar esta lista
 	for (int i = 0; i < p; i++)
 	{
-		while (flag)
+		while (flag)	//verifica se a pthread foi criada, caso falhe, o retorno será diferente de zero, portanto o loop persistirá
 			flag = pthread_create(&produtores[i], NULL, produz, (void*)p_arg);
 		flag = 1;
 	}
@@ -49,34 +53,37 @@ int main(int argc, char* argv[])
 	}
 
 	for (int i = 0; i < p; i++)
-		flag = pthread_join(produtores[i],NULL);
-
+	{
+		while(flag)
+			flag = pthread_join(produtores[i],NULL);
+		flag = 1;
+	}
 	pthread_mutex_lock(&m);
 	for (int i = 0; i < c; i++)
 		buffer.push_back(-1);
 	pthread_mutex_unlock(&m);
 
 	for (int i = 0; i < c; i++)
-		flag = pthread_join(consumidores[i],NULL);
+		while(flag)
+			flag = pthread_join(consumidores[i],NULL);
 
 	return 0;
 }
 
-void * produz(void* arg) //unsigned short V, std::list<short> B
+void * produz(void* arg) //unsigned long V, std::list<short> B
 {
 	pth_arg *p_arg = (pth_arg*)arg;
-	unsigned short V = p_arg->V;
+	unsigned long V = p_arg->V;
 	std::list<short> *B = p_arg->B;
 	std::random_device rd;
 	for (unsigned short i = 0; i < V; i++)
-    {
-		while (B->size() == t)
+    	{
+		while (B->size() == t)	//Limite estipulado para o buffer
 			sched_yield();
 		pthread_mutex_lock(&m);
 		B->push_back(rand() % SHRT_MAX);
 		pthread_mutex_unlock(&m);
-    }
-    count++;
+   	 }
 	pthread_exit(NULL);
 }
 
@@ -84,18 +91,18 @@ void * consome(void* arg) //std::list<short> B
 {
 	pth_arg *p_arg = (pth_arg*)arg;
 	std::list<short> *B = p_arg->B;
-	while(count < p || B->size() != 0)
+	while(1)	//Loop infinito
 	{
 		while (B->size() == 0)
 			sched_yield();
 		short a = B->front();
 		pthread_mutex_lock(&m);
-        B->pop_front();
+        	B->pop_front();
 		pthread_mutex_unlock(&m);
 		if (a == -1)
 			break;
 		if (prime_number(abs(a)))
-			std::cout << '[' + std::to_string(pthread_self()) + ':' + std::to_string(a) + "]\n";
+			std::cout << '[' + std::to_string(pthread_self()) + ':' + std::to_string(a) + "]\n";	//[id:numero_primo]
 	}
 	pthread_exit(NULL);
 }
@@ -103,6 +110,8 @@ void * consome(void* arg) //std::list<short> B
 bool prime_number(short p)
 {
 	if (p <= 1) return false;
-	for (short i = 2; i < p / 2; i++) if (i % p == 0) return false;
+	if (p == 2) return true;
+	p = (short)sqrt(p);
+	for (short i = 3; i <= p; i+=2) if (p % i == 0) return false;
 	return true;
 }
