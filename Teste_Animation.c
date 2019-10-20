@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <pthread.h>
+//#include <pthread.h>
 #include <termios.h>
 #include <unistd.h>
 
