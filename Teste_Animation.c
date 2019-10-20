@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
-//#include <pthread.h>
+#include <pthread.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -19,7 +19,7 @@ int getch(void)
     return ch;
 }
 
-//std::mutex m;
+pthread_mutex_t m;
 
 struct control {
 	unsigned x;
@@ -27,8 +27,8 @@ struct control {
 	int* stop;
 };
 
-void move(struct control* action);
-void animation(struct control* action);
+void* move(void* arg);
+void animation(control* action);
 
 int main(int argc, char* argv[])
 {
@@ -40,29 +40,28 @@ int main(int argc, char* argv[])
         .stop = &ch
     };
 	//std::thread anim(move, &ch);
-	//pthread_t thread;
-	//pthread_create(&thread, NULL, move, (void*)& ch);
+	pthread_t thread;
+	pthread_create(&thread, NULL, move, (void*)& ch);
     animation(&movement);
 	while ((ch = getch()) != EOF
-		&& ch != 'e')
-	{
-		move(&movement);
-		ch = 0;
-	}
+		&& ch != 'e');
 	//anim.join();
-	//pthread_join(thread, NULL);
+	pthread_join(thread, NULL);
 	return 0;
 }
 
-void move(struct control* action)
+void* move(void* arg)
 {
+    struct control* action = (struct control*)arg;
 	//int aux;
 	//pthread_t thread;
 	//pthread_create(&thread, NULL, animation, (void*)& movement);
 	//std::thread anim(animation, &movement);
-	//do
-	//{
+	do
+	{
 		system("clear");
+        if (*action->stop == 'e')
+            break;
 		//aux = *action;
 		switch (*action->stop)
 		{
@@ -87,12 +86,13 @@ void move(struct control* action)
 		}
 		animation(action);
 		//m.lock();
-		//pthread_mutex_lock(&m);
-		//*action = 0;
+		pthread_mutex_lock(&m);
+		*action = 0;
 		//m.unlock();
-		//pthread_mutex_unlock(&m);
+		pthread_mutex_unlock(&m);
 		//while (*action == 0) std::this_thread::yield();
-	//} while (1);
+        sched_yield();
+	} while (1);
 	//anim.join();
 	//pthread_join(thread, NULL);
 	return;
