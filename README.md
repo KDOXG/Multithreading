@@ -1,2 +1,2 @@
 # Multithreading
-Projetos de Multithreading. Maioria são experimentos.
+Projetos para praticar Multithreading.
