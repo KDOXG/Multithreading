@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     
     if (argc != 2) return -1;
 
-    tagBITMAP *fileInfo = readBMP(string(argv[1]));
+    tagBITMAP *fileInfo = ReadBMP(string(argv[1]));
     cout << "Read image succesful!\n";
     ImageData *img = new ImageData(fileInfo);
     cout << "Save image succesful!\n";
@@ -42,7 +42,6 @@ int main(int argc, char* argv[]) {
         cout << "\tDWORD biClrUsed: " << fileInfo->pBMPInfoHeader->biClrUsed << '\n';
         cout << "\tDWORD biClrImportant: " << fileInfo->pBMPInfoHeader->biClrImportant << '\n';
     }
-    int n = 1, m = 1;
 
     #pragma omp parallel for
     for(int i = 0; i < img->width; i++) {
@@ -54,6 +53,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // img->applyFilter((unsigned short *) passabaixa, passabaixaTotal);
     // filterIterative(img);
 
     cout << "Filter succesful!\n";
