@@ -1,68 +1,87 @@
 #include "filter.h"
-#include <cstdio>
-#include <iostream>
-#include <vector>
-#include <iterator>
-#include <bitset>
-#include <omp.h>
-#define N 50
-#define M 50
 
-using namespace std;
-
-int main(int argc, char* argv[]) {
-    
-    if (argc != 2) return -1;
-
-    tagBITMAP *fileInfo = ReadBMP(string(argv[1]));
-    cout << "Read image succesful!\n";
-    ImageData *img = new ImageData(fileInfo);
-    cout << "Save image succesful!\n";
-
-    if (fileInfo)
-    {    
-        cout << "File read succesful!\n";
-        cout << "Struct tagBITMAPFILEHEADER\n";
-        cout << "\tWORD bfType: " << fileInfo->pBMPFileHeader->bfType << '\n';
-        cout << "\tDWORD bfSize: " << fileInfo->pBMPFileHeader->bfSize << '\n';
-        cout << "\tWORD bfReserved1: " << fileInfo->pBMPFileHeader->bfReserved1 << '\n';
-        cout << "\tWORD bfReserved2: " << fileInfo->pBMPFileHeader->bfReserved2 << '\n';
-        cout << "\tDWORD bfOffBits: " << fileInfo->pBMPFileHeader->bfOffBits << '\n';
-
-        cout << "Struct tagBITMAPINFOHEADER\n";
-        cout << "\tDWORD biSize: " << fileInfo->pBMPInfoHeader->biSize << '\n';
-        cout << "\tLONG biWidth: " << fileInfo->pBMPInfoHeader->biWidth << '\n';
-        cout << "\tLONG biHeight: " << fileInfo->pBMPInfoHeader->biHeight << '\n';
-        cout << "\tWORD biPlanes: " << fileInfo->pBMPInfoHeader->biPlanes << '\n';
-        cout << "\tWORD biBitCount: " << fileInfo->pBMPInfoHeader->biBitCount << '\n';
-        cout << "\tDWORD biCompression: " << fileInfo->pBMPInfoHeader->biCompression << '\n';
-        cout << "\tDWORD biSizeImage: " << fileInfo->pBMPInfoHeader->biSizeImage << '\n';
-        cout << "\tLONG biXPelsPerMeter: " << fileInfo->pBMPInfoHeader->biXPelsPerMeter << '\n';
-        cout << "\tLONG biYPelsPerMeter: " << fileInfo->pBMPInfoHeader->biYPelsPerMeter << '\n';
-        cout << "\tDWORD biClrUsed: " << fileInfo->pBMPInfoHeader->biClrUsed << '\n';
-        cout << "\tDWORD biClrImportant: " << fileInfo->pBMPInfoHeader->biClrImportant << '\n';
-    }
-
-    #pragma omp parallel for
-    for(int i = 0; i < img->width; i++) {
-        #pragma omp parallel for shared(img)
-        for (int j = 0; j < img->height; j++) {
-            img->R->at(i).at(j) = j;
-            img->G->at(i).at(j) = j;
-            img->B->at(i).at(j) = j;
+/*
+void filterRecursive(int lx, int hx, int ly, int hy)
+{
+    unsigned int sumR = 0, qnt = 0;
+    bitset<4> posflag;
+    if (lx == hx || ly == hy)
+    {
+        posflag[0] = lx == N - 1;
+        posflag[1] = ly == N - 1;
+        posflag[2] = lx == 0;
+        posflag[3] = ly == 0;
+        switch(stoi(posflag.to_string()))   
+        //Da para paralelizar, todas as somas sao independentes
+        //#pragma omp parallel reduction(+:sumR)
+        {
+            case 0011:      //lx == 0 and ly == 0
+                sumR += R[lx][ly] * W3;
+                sumR += R[lx+1][ly] * W2;
+                sumR += R[lx][ly+1] * W2;
+                sumR += R[lx+1][ly+1] * W1;
+            break;
+            case 0010:      //lx == 0
+                sumR += R[lx][ly-1] * W2;
+                sumR += R[lx+1][ly-1] * W1;
+                sumR += R[lx][ly] * W3;
+                sumR += R[lx+1][ly] * W1;
+                sumR += R[lx][ly+1] * W2;
+                sumR += R[lx+1][ly+1] * W1;
+            break;
+            case 0001:      //ly == 0
+                sumR += R[lx-1][ly] * W2;
+                sumR += R[lx][ly] * W3;
+                sumR += R[lx+1][ly] * W2;
+                sumR += R[lx-1][ly+1] * W1;
+                sumR += R[lx][ly+1] * W2;
+                sumR += R[lx+1][ly+1] * W1;
+            break;
+            case 1100:      //lx == N and ly == N
+                sumR += R[lx-1][ly-1] * W1;
+                sumR += R[lx-1][ly] * W2;
+                sumR += R[lx][ly-1] * W2;
+                sumR += R[lx][ly] * W3;
+            break;
+            case 1000:      //lx == N
+                sumR += R[lx-1][ly-1] * W1;
+                sumR += R[lx][ly-1] * W2;
+                sumR += R[lx-1][ly] * W2;
+                sumR += R[lx][ly] * W3;
+                sumR += R[lx-1][ly+1] * W1;
+                sumR += R[lx][ly+1] * W2;
+            break;
+            case 0100:      //ly == N
+                sumR += R[lx-1][ly-1] * W1;
+                sumR += R[lx][ly-1] * W2;
+                sumR += R[lx+1][ly-1] * W1;
+                sumR += R[lx-1][ly] * W2;
+                sumR += R[lx][ly] * W3;
+                sumR += R[lx+1][ly] * W2;
+            break;
+            default:
+                sumR += R[lx-1][ly-1] * W1;
+                sumR += R[lx][ly-1] * W2;
+                sumR += R[lx+1][ly-1] * W1;
+                sumR += R[lx-1][ly] * W2;
+                sumR += R[lx][ly] * W3;
+                sumR += R[lx+1][ly] * W2;
+                sumR += R[lx-1][ly+1] * W1;
+                sumR += R[lx][ly+1] * W2;
+                sumR += R[lx+1][ly+1] * W1;
+            break;
         }
+
+        sumR /= passabaixaTotal;
+        
+        outR[lx][ly] = sumR;
+
+        return;
     }
-
-    img->applyFilter(passabaixa, passabaixaTotal);
-
-    cout << "Filter succesful!\n";
-
-    for (int i = 0; i < N ; i++, cout << "\n") {
-        for (int j = 0; j < M; j++)
-            cout << img->outR->at(i).at(j) << " ";
-    }
-    
-    delete img;
-
-    return 0;
+    filterRecursive(lx, hx/2, ly, hy/2);
+    filterRecursive(hx/2, hx, ly, hy/2);
+    filterRecursive(lx, hx/2, hy/2, hy);
+    filterRecursive(hx/2, hx, hy/2, hy);
+    return;
 }
+*/

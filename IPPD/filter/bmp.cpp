@@ -1,6 +1,7 @@
 #pragma pack(1)
 #include "bmp.h"
 #include <bitset>
+#include <omp.h>
 
 tagBITMAP::tagBITMAP(int n)
 {
@@ -34,12 +35,12 @@ ImageData::ImageData(tagBITMAP *info)
     this->info = info;
     this->width = info->pBMPInfoHeader->biWidth;
     this->height = info->pBMPInfoHeader->biHeight;
-    this->R = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height));
-    this->G = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height));
-    this->B = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height));
-    this->outR = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height));
-    this->outG = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height));
-    this->outB = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height));
+    this->R = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height, 0));
+    this->G = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height, 0));
+    this->B = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height, 0));
+    this->outR = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height, 0));
+    this->outG = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height, 0));
+    this->outB = new std::vector<std::vector<uint16_t>>(this->width,std::vector<uint16_t>(this->height, 0));
 }
 
 ImageData::~ImageData()
@@ -60,12 +61,12 @@ void ImageData::applyFilter(const unsigned short int mask[][3], const unsigned s
 
     // std::cout << "I'm in\n";
 
-    //#pragma omp parallel for private(posx)
+    #pragma omp parallel for private(posx)
     for (int i = 0; i < this->width; i++)
     {
         posx[0] = !(i == 0);
         posx[1] = !(i == this->width-1);
-        //#pragma omp parallel for private(posy, sumR)
+        #pragma omp parallel for firstprivate(posy, sumR)
         for (int j = 0; j < this->height; j++)
         {
             posy[0]= !(j == 0);
