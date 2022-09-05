@@ -47,69 +47,22 @@ int main(int argc, char* argv[]) {
     for(int i = 0; i < img->width; i++) {
         #pragma omp parallel for shared(img)
         for (int j = 0; j < img->height; j++) {
-            img->R->at(i).at(j) = j*256;
+            img->R->at(i).at(j) = j;
             img->G->at(i).at(j) = j;
             img->B->at(i).at(j) = j;
         }
     }
 
-    // img->applyFilter((unsigned short *) passabaixa, passabaixaTotal);
-    // filterIterative(img);
+    img->applyFilter(passabaixa, passabaixaTotal);
 
     cout << "Filter succesful!\n";
 
-    // for (int i = 0; i < N ; i++)
-    //     for (int j = 0; j < M; j++)
-    //         cout << outR[i][j] << ( (j < M - 1) ? " " : "\n" );
+    for (int i = 0; i < N ; i++, cout << "\n") {
+        for (int j = 0; j < M; j++)
+            cout << img->outR->at(i).at(j) << " ";
+    }
     
     delete img;
 
     return 0;
 }
-
-/*
-void filterIterative(ImageData *img)
-{
-    unsigned int sumR = 0;
-    bitset<2> posx, posy;
-
-    cout << "I'm in\n";
-
-    //#pragma omp parallel for private(posx)
-    for (int i = 0; i < hx; i++)
-    {
-        posx[0] = !(i == 0);
-        posx[1] = !(i == hx-1);
-        //#pragma omp parallel for private(posy, sumR)
-        for (int j = 0; j < hy; j++)
-        {
-            posy[0] = !(j == 0);
-            posy[1] = !(j == hy-1);
-            // cout << sumR << endl;
-            sumR += R[i-1*posx.test(0)]     [j-1*posy.test(0)]  * passabaixa[0][0] * posx.test(0) * posy.test(0);
-            // cout << sumR << endl;
-            sumR += R[i-1*posx.test(0)]     [j]                 * passabaixa[0][1] * posx.test(0);
-            sumR += R[i-1*posx.test(0)]     [j+1*posy.test(1)]  * passabaixa[0][2] * posx.test(0) * posy.test(1);
-            // cout << sumR << endl;
-            sumR += R[i]                    [j-1*posy.test(0)]  * passabaixa[1][0] * posy.test(0);
-            sumR += R[i]                    [j]                 * passabaixa[1][1];
-            sumR += R[i]                    [j+1*posy.test(1)]  * passabaixa[1][2] * posy.test(1);
-            // cout << sumR << endl;
-            sumR += R[i+1*posx.test(1)]     [j-1*posy.test(0)]  * passabaixa[2][0] * posx.test(1) * posy.test(0);
-            sumR += R[i+1*posx.test(1)]     [j]                 * passabaixa[2][1] * posx.test(1);
-            sumR += R[i+1*posx.test(1)]     [j+1*posy.test(1)]  * passabaixa[2][2] * posx.test(1) * posy.test(0);
-            // cout << sumR << endl;
-            // cout << "-----------------" << endl;
-            
-            outR[i][j] = sumR / passabaixaTotal;
-
-            sumR = 0;
-
-        }
-        //cout << "Ok...\n";
-    }
-
-    return;
-
-}
-*/

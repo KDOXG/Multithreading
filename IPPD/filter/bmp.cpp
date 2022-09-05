@@ -1,5 +1,6 @@
 #pragma pack(1)
 #include "bmp.h"
+#include <bitset>
 
 tagBITMAP::tagBITMAP(int n)
 {
@@ -52,49 +53,50 @@ ImageData::~ImageData()
     delete outB;
 }
 
-void ImageData::applyFilter(const unsigned short int *mask)
+void ImageData::applyFilter(const unsigned short int mask[][3], const unsigned short int maskTotal)
 {
-    unsigned int sumR = 0;
-    bitset<2> posx, posy;
+    unsigned int sumR = 0, sumG = 0, sumB = 0;
+    std::bitset<2> posx, posy;
 
-    cout << "I'm in\n";
+    // std::cout << "I'm in\n";
 
     //#pragma omp parallel for private(posx)
-    for (int i = 0; i < hx; i++)
+    for (int i = 0; i < this->width; i++)
     {
         posx[0] = !(i == 0);
-        posx[1] = !(i == hx-1);
+        posx[1] = !(i == this->width-1);
         //#pragma omp parallel for private(posy, sumR)
-        for (int j = 0; j < hy; j++)
+        for (int j = 0; j < this->height; j++)
         {
-            posy[0] = !(j == 0);
-            posy[1] = !(j == hy-1);
+            posy[0]= !(j == 0);
+            posy[1]= !(j == this->height-1);
             // cout << sumR << endl;
-            sumR += R[i-1*posx.test(0)]     [j-1*posy.test(0)]  * passabaixa[0][0] * posx.test(0) * posy.test(0);
+            sumR += this->R->at(i-1*posx.test(0)).at(j-1*posy.test(0)) * mask[0][0] * posx.test(0) * posy.test(0);
             // cout << sumR << endl;
-            sumR += R[i-1*posx.test(0)]     [j]                 * passabaixa[0][1] * posx.test(0);
-            sumR += R[i-1*posx.test(0)]     [j+1*posy.test(1)]  * passabaixa[0][2] * posx.test(0) * posy.test(1);
+            sumR += this->R->at(i-1*posx.test(0)).at(j) * mask[0][1] * posx.test(0);
+            sumR += this->R->at(i-1*posx.test(0)).at(j+1*posy.test(1)) * mask[0][2] * posx.test(0) * posy.test(1);
             // cout << sumR << endl;
-            sumR += R[i]                    [j-1*posy.test(0)]  * passabaixa[1][0] * posy.test(0);
-            sumR += R[i]                    [j]                 * passabaixa[1][1];
-            sumR += R[i]                    [j+1*posy.test(1)]  * passabaixa[1][2] * posy.test(1);
+            sumR += this->R->at(i).at(j-1*posy.test(0)) * mask[1][0] * posy.test(0);
+            sumR += this->R->at(i).at(j) * mask[1][1];
+            sumR += this->R->at(i).at(j+1*posy.test(1)) * mask[1][2] * posy.test(1);
             // cout << sumR << endl;
-            sumR += R[i+1*posx.test(1)]     [j-1*posy.test(0)]  * passabaixa[2][0] * posx.test(1) * posy.test(0);
-            sumR += R[i+1*posx.test(1)]     [j]                 * passabaixa[2][1] * posx.test(1);
-            sumR += R[i+1*posx.test(1)]     [j+1*posy.test(1)]  * passabaixa[2][2] * posx.test(1) * posy.test(0);
+            sumR += this->R->at(i+1*posx.test(1)).at(j-1*posy.test(0)) * mask[2][0] * posx.test(1) * posy.test(0);
+            sumR += this->R->at(i+1*posx.test(1)).at(j) * mask[2][1] * posx.test(1);
+            sumR += this->R->at(i+1*posx.test(1)).at(j+1*posy.test(1)) * mask[2][2] * posx.test(1) * posy.test(0);
             // cout << sumR << endl;
             // cout << "-----------------" << endl;
             
-            outR[i][j] = sumR / passabaixaTotal;
+            this->outR->at(i).at(j) = sumR / maskTotal;
 
             sumR = 0;
+            sumG = 0;
+            sumB = 0;
 
         }
         //cout << "Ok...\n";
     }
 
     return;
-
 }
 
 tagBITMAP* ReadBMP(std::string filename)

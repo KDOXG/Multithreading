@@ -178,3 +178,6 @@ void filterRecursive(int lx, int hx, int ly, int hy)
 
     vector<vector<uint16_t>> R(n,vector<uint16_t>(m)), G(n,vector<uint16_t>(m)), B(n,vector<uint16_t>(m));
     vector<vector<uint16_t>> outR(n,vector<uint16_t>(m)), outG(n,vector<uint16_t>(m)), outB(n,vector<uint16_t>(m));
+
+
+    // filterIterative(img);

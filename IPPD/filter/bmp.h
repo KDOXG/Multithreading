@@ -54,7 +54,7 @@ struct ImageData
 
     ImageData(tagBITMAP *info);
     ~ImageData();
-    void applyFilter(const unsigned short int *mask, const unsigned short int maskTotal);
+    void applyFilter(const unsigned short int mask[][3], const unsigned short int maskTotal);
 };
 
 tagBITMAP* ReadBMP(std::string filename);
